@@ -39,3 +39,4 @@ L’interface inclut :
 
 ---
 
+pip install -r requirements.txt
