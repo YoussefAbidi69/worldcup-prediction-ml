@@ -1,26 +1,36 @@
 <div class="neon-sidebar">
+    <!-- Logo / titre -->
     <div class="sidebar-logo">
         <span class="glow-icon">🏆</span>
         <span>FIFA Predictor</span>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav">
-        <a href="/" class="nav-item">
+        <!-- Accueil -->
+        <a href="{{ url_for('home') }}"
+           class="nav-item {% if current_page == 'home' %}active{% endif %}">
             <span class="icon">🏠</span>
             Accueil
         </a>
 
-        <a href="/predictions" class="nav-item">
+        <!-- Prédictions -->
+        <a href="{{ url_for('predictions') }}"
+           class="nav-item {% if current_page == 'predictions' %}active{% endif %}">
             <span class="icon">⚽</span>
             Prédictions
         </a>
 
-        <a href="/stats" class="nav-item">
+        <!-- Statistiques (même si la page est vide pour l'instant) -->
+        <a href="{{ url_for('stats') }}"
+           class="nav-item {% if current_page == 'stats' %}active{% endif %}">
             <span class="icon">📊</span>
             Statistiques
         </a>
 
-        <a href="/about" class="nav-item">
+        <!-- À propos -->
+        <a href="{{ url_for('about') }}"
+           class="nav-item {% if current_page == 'about' %}active{% endif %}">
             <span class="icon">ℹ️</span>
             À propos
         </a>

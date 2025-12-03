@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Accueil – FIFA Predictor{% endblock %}
+
+{% block content %}
+
+<!-- =========================
+     HERO + STATS
+     ========================= -->
+<div class="home-hero">
+    <!-- Bloc texte principal -->
+    <div class="hero-main">
+        <h1 class="hero-title">Bienvenue dans FIFA Predictor</h1>
+
+        <p class="hero-subtitle">
+            Un tableau de bord intelligent pour analyser les matchs de Coupe du Monde
+            à partir des données historiques, des cotes ELO et de la forme récente des équipes.
+        </p>
+
+        <p class="hero-text">
+            Sélectionnez deux équipes nationales, laissez le modèle estimer les probabilités
+            de victoire, de nul ou de défaite, puis explorez les confrontations directes
+            et les derniers matchs pour affiner votre analyse.
+        </p>
+
+        <a href="{{ url_for('predictions') }}" class="btn cta-btn">
+            <span>Commencer une prédiction</span>
+            <span class="cta-arrow">➜</span>
+        </a>
+    </div>
+
+    <!-- Bloc stats à droite -->
+    <div class="hero-stats">
+        <!-- Matchs analysés -->
+        <div class="stat-card">
+            <span class="stat-label">Matchs analysés</span>
+            <span class="stat-value">
+                {{ stats.total_matches }}
+            </span>
+            <span class="stat-note">
+                Matchs historiques utilisés pour entraîner et évaluer le modèle.
+            </span>
+        </div>
+
+        <!-- Équipes couvertes -->
+        <div class="stat-card">
+            <span class="stat-label">Équipes couvertes</span>
+            <span class="stat-value">
+                {{ stats.total_teams }}
+            </span>
+            <span class="stat-note">
+                Sélections nationales présentes dans la base de données.
+            </span>
+        </div>
+
+        <!-- Période couverte -->
+        <div class="stat-card">
+            <span class="stat-label">Période couverte</span>
+            <span class="stat-value">
+                {% if stats.start_year and stats.end_year %}
+                    {{ stats.start_year }} – {{ stats.end_year }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </span>
+            <span class="stat-note">
+                Années des matchs présents dans <code>matches_history.csv</code>.
+            </span>
+        </div>
+
+        <!-- Pourcentages résultats globaux -->
+        <div class="stat-percentages">
+            <div class="stat-p-item">
+                <span class="sp-icon">🏠</span>
+                <span class="sp-label">Victoire domicile :</span>
+                <span class="sp-value">{{ stats.p_home }}%</span>
+            </div>
+
+            <div class="stat-p-item">
+                <span class="sp-icon">🤝</span>
+                <span class="sp-label">Match nul :</span>
+                <span class="sp-value">{{ stats.p_draw }}%</span>
+            </div>
+
+            <div class="stat-p-item">
+                <span class="sp-icon">🚀</span>
+                <span class="sp-label">Victoire extérieur :</span>
+                <span class="sp-value">{{ stats.p_away }}%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================
+     FONCTIONNALITÉS
+     ========================= -->
+<!-- =========================
+     FONCTIONNALITÉS
+     ========================= -->
+<div class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">🔮</div>
+        <h3 class="feature-title">Prédiction de résultat</h3>
+        <p class="feature-text">
+            Le modèle estime les probabilités des trois issues possibles d’un match :
+            victoire à domicile, match nul et victoire à l’extérieur. Le scénario affiché
+            correspond à celui ayant la probabilité la plus élevée.
+        </p>
+        <p class="feature-meta">
+            Basé sur {{ stats.total_matches }} matchs historiques.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Analyse ELO & forme</h3>
+        <p class="feature-text">
+            L’analyse compare le niveau global des équipes, leur forme récente basée
+            sur les derniers matchs et l’équilibre statistique entre les deux sélections
+            pour mieux comprendre l’affiche.
+        </p>
+        <p class="feature-meta">
+            Analyse de {{ stats.total_teams }} équipes nationales.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">🕒</div>
+        <h3 class="feature-title">Historique détaillé</h3>
+        <p class="feature-text">
+            Explorez les confrontations directes (H2H) et les cinq derniers matchs de chaque équipe
+            afin de replacer la prédiction dans son contexte historique et mieux interpréter
+            les résultats.
+        </p>
+        <p class="feature-meta">
+            Données couvrant la période
+            {% if stats.start_year and stats.end_year %}
+                {{ stats.start_year }} – {{ stats.end_year }}.
+            {% else %}
+                disponible dans la base historique.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- =========================
+     FOOTER – À PROPOS DU MODÈLE
+     ========================= -->
+<footer class="model-footer">
+    <h2>À propos du modèle</h2>
+
+    <p>
+        Ce prédicteur analyse les performances récentes des équipes, leur niveau général
+        et l’historique de leurs confrontations afin d’estimer l’issue la plus probable d’un match.
+    </p>
+
+    <div class="footer-grid">
+        <div class="footer-item">
+            <span class="fi">📈</span>
+            <p>Analyse de la forme actuelle et de la dynamique des deux équipes.</p>
+        </div>
+
+        <div class="footer-item">
+            <span class="fi">🏆</span>
+            <p>Évaluation du niveau global estimé de chaque nation.</p>
+        </div>
+
+        <div class="footer-item">
+            <span class="fi">🏟️</span>
+            <p>Prise en compte de l’avantage de jouer à domicile.</p>
+        </div>
+
+        <div class="footer-item">
+            <span class="fi">📅</span>
+            <p>Historique des confrontations directes entre les deux équipes.</p>
+        </div>
+    </div>
+
+    <p class="footer-end">
+        Le système calcule ensuite trois probabilités (domicile, nul, extérieur)
+        et retient simplement le scénario le plus probable.
+    </p>
+</footer>
+
+{% endblock %}

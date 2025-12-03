@@ -138,6 +138,25 @@ MATCHES_DF["date"] = pd.to_datetime(MATCHES_DF["date"], errors="coerce")
 
 
 # ================================
+# Statistiques globales du dataset
+# ================================
+TOTAL_MATCHES = int(MATCHES_DF.shape[0])
+
+teams_home = set(MATCHES_DF["home_team_name"].dropna().unique())
+teams_away = set(MATCHES_DF["away_team_name"].dropna().unique())
+TOTAL_TEAMS = len(teams_home | teams_away)
+
+year_series = MATCHES_DF["date"].dt.year.dropna()
+if not year_series.empty:
+    DATA_START_YEAR = int(year_series.min())
+    DATA_END_YEAR = int(year_series.max())
+else:
+    DATA_START_YEAR = None
+    DATA_END_YEAR = None
+
+
+
+# ================================
 # Fonctions utilitaires pour l'historique
 # ================================
 def compute_h2h(team_a, team_b, n=5):
@@ -264,10 +283,47 @@ def compute_last_matches(team, n=5):
 
 
 # ================================
-# Route principale
+# ROUTES FLASK
 # ================================
-@app.route("/", methods=["GET", "POST"])
-def index():
+
+# --- Accueil simple ---
+@app.route("/")
+def home():
+    stats = {
+    "total_matches": TOTAL_MATCHES,
+    "total_teams": TOTAL_TEAMS,
+    "start_year": DATA_START_YEAR,
+    "end_year": DATA_END_YEAR,
+    "p_home": P_HOME,
+    "p_draw": P_DRAW,
+    "p_away": P_AWAY,
+    }
+    return render_template(
+        "home.html",
+        current_page="home",
+        stats=stats
+    )
+
+
+# ================================
+# Pourcentages victoires / nuls
+# ================================
+home_wins = (MATCHES_DF["home_score"] > MATCHES_DF["away_score"]).sum()
+away_wins = (MATCHES_DF["away_score"] > MATCHES_DF["home_score"]).sum()
+draws = (MATCHES_DF["home_score"] == MATCHES_DF["away_score"]).sum()
+
+if TOTAL_MATCHES > 0:
+    P_HOME = round(home_wins / TOTAL_MATCHES * 100, 1)
+    P_DRAW = round(draws / TOTAL_MATCHES * 100, 1)
+    P_AWAY = round(away_wins / TOTAL_MATCHES * 100, 1)
+else:
+    P_HOME = P_DRAW = P_AWAY = 0
+
+
+
+# --- Page Prédictions ---
+@app.route("/predictions", methods=["GET", "POST"])
+def predictions():
     home_team = ""
     away_team = ""
     prediction_text = None
@@ -384,7 +440,8 @@ def index():
                 analysis_text = " ".join(parts) if parts else None
 
     return render_template(
-        "index.html",
+        "predictions.html",
+        current_page="predictions",
         teams=TEAMS,
         home_team=home_team,
         away_team=away_team,
@@ -408,5 +465,25 @@ def index():
     )
 
 
+# --- Pages Stats / À propos (simples pour l’instant) ---
+@app.route("/stats")
+def stats():
+    return render_template(
+        "home.html",   # tu peux créer un stats.html plus tard
+        current_page="stats"
+    )
+
+
+@app.route("/about")
+def about():
+    return render_template(
+        "home.html",   # tu peux créer un about.html plus tard
+        current_page="about"
+    )
+
+
+# ================================
+# Lancement app
+# ================================
 if __name__ == "__main__":
     app.run(debug=True)
