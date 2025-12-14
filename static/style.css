@@ -928,3 +928,409 @@ select:focus {
     font-size: 14px;
     opacity: 0.9;
 }
+
+
+/* ===== MATCH HEADER ===== */
+.match-header {
+    margin: 18px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+}
+
+.team-card {
+    width: 180px;
+    padding: 14px 12px;
+    border-radius: 14px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.6);
+}
+
+.team-card img {
+    width: 56px;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+}
+
+.team-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f9fafb;
+    text-align: center;
+}
+
+/* VS */
+.vs-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 18px rgba(139,92,246,0.8);
+}
+/* ===== WINNER ANIMATION ===== */
+
+/* Animation principale */
+@keyframes winnerPulse {
+    0% {
+        box-shadow:
+            0 0 10px rgba(34,197,94,0.25),
+            0 0 30px rgba(34,197,94,0.15);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow:
+            0 0 35px rgba(34,197,94,0.7),
+            0 0 80px rgba(34,197,94,0.45);
+        transform: scale(1.045);
+    }
+    100% {
+        box-shadow:
+            0 0 10px rgba(34,197,94,0.25),
+            0 0 30px rgba(34,197,94,0.15);
+        transform: scale(1);
+    }
+}
+
+
+/* Effet halo animé */
+.team-card.is-winner {
+    position: relative;
+    border-color: rgba(34,197,94,0.8);
+    animation: winnerPulse 2.8s ease-in-out infinite;
+}
+.team-card.is-winner::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+        120deg,
+        transparent 30%,
+        rgba(34,197,94,0.35),
+        transparent 70%
+    );
+    animation: scanMove 2.8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes scanMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Badge subtil "WINNER" */
+/* Badge ML */
+.team-card.is-winner::after {
+    content: "Winner";
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    padding: 5px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+    color: #022c22;
+    box-shadow:
+        0 0 14px rgba(34,197,94,0.9),
+        0 0 30px rgba(34,197,94,0.4);
+    animation: badgePop 0.6s ease-out;
+}
+
+@keyframes badgePop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+
+/* ===== H2H CENTER ===== */
+.h2h-center {
+    margin-top: 28px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(2,6,23,0.95));
+    border: 1px solid rgba(148,163,184,0.35);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+}
+
+.h2h-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.h2h-card {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(15,23,42,0.85);
+    border: 1px solid rgba(148,163,184,0.25);
+    text-align: center;
+    animation: fadeUp 0.5s ease both;
+}
+
+.h2h-card span {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.h2h-card strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #f9fafb;
+}
+
+.h2h-card.win strong {
+    color: #22c55e;
+}
+
+.h2h-card.draw strong {
+    color: #38bdf8;
+}
+
+/* Dernier match */
+.h2h-last {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: radial-gradient(circle at left, rgba(34,197,94,0.18), transparent 60%);
+    border: 1px solid rgba(34,197,94,0.4);
+    display: grid;
+    grid-template-columns: 90px 1fr 70px 90px;
+    gap: 10px;
+    align-items: center;
+    font-size: 13px;
+}
+
+.h2h-last .score {
+    font-weight: 800;
+    color: #f9fafb;
+}
+
+.h2h-last .winner {
+    font-weight: 700;
+    color: #22c55e;
+    text-align: right;
+}
+
+/* Animation */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== FORM RECENTE (DERNIERS MATCHS) ===== */
+.form-center {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+.form-card {
+    padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(2,6,23,0.95));
+    border: 1px solid rgba(148,163,184,0.35);
+    box-shadow: 0 22px 45px rgba(0,0,0,0.6);
+    animation: slideUp 0.6s ease both;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-title {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f9fafb;
+}
+
+.form-table {
+    font-size: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,0.3);
+}
+
+.form-header,
+.form-row {
+    display: grid;
+    grid-template-columns: 90px 1.5fr 60px 90px;
+    gap: 8px;
+    padding: 7px 10px;
+}
+
+.form-header {
+    background: rgba(15,23,42,0.95);
+    font-weight: 700;
+    color: #cbd5f5;
+}
+
+.form-row {
+    background: rgba(15,23,42,0.75);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.form-row:hover {
+    background: rgba(30,41,59,0.9);
+    transform: translateX(4px);
+}
+
+/* ===== BADGES RESULTATS ===== */
+.badge {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Victoire */
+.form-row.victoire .badge {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #020617;
+}
+
+/* Nul */
+.form-row.nul .badge {
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    color: #020617;
+}
+
+/* Défaite */
+.form-row.défaite .badge,
+.form-row.defaite .badge {
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    color: #020617;
+}
+
+.score {
+    font-weight: 700;
+    color: #f9fafb;
+}
+/* ================= LAST MATCHES – PREMIUM ================= */
+
+.history-grid {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 22px;
+    animation: fadeUp 0.6s ease both;
+}
+
+/* Section par équipe */
+.history-section {
+    padding: 18px 20px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(2,6,23,0.95));
+    border: 1px solid rgba(148,163,184,0.35);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.65);
+}
+
+.history-section h3 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #f9fafb;
+}
+
+/* Tableau */
+.history-table {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,0.25);
+}
+
+/* Header */
+.history-header {
+    display: grid;
+    grid-template-columns: 90px 1.5fr 70px 90px;
+    padding: 10px 14px;
+    background: rgba(30,41,59,0.95);
+    font-size: 12px;
+    font-weight: 700;
+    color: #cbd5f5;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Lignes */
+.history-row {
+    display: grid;
+    grid-template-columns: 90px 1.5fr 70px 90px;
+    padding: 10px 14px;
+    font-size: 13px;
+    align-items: center;
+    background: rgba(15,23,42,0.85);
+    border-top: 1px solid rgba(148,163,184,0.15);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.history-row:hover {
+    background: rgba(30,41,59,0.9);
+    transform: translateX(4px);
+}
+
+/* Colonnes */
+.history-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Score */
+.history-row span:nth-child(3) {
+    font-weight: 800;
+    text-align: center;
+    color: #f9fafb;
+}
+
+/* Résultat – badge */
+.history-row span:last-child {
+    text-align: right;
+    font-weight: 800;
+}
+
+/* Résultat couleurs */
+.history-row span:last-child:contains("Victoire") {
+    color: #22c55e;
+}
+
+.history-row span:last-child:contains("Défaite") {
+    color: #ef4444;
+}
+
+.history-row span:last-child:contains("Nul") {
+    color: #38bdf8;
+}

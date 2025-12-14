@@ -50,6 +50,29 @@
             <span class="headline-text">{{ prediction_text }}</span>
         </div>
 
+<div class="match-header">
+    <div class="team-card home {% if winner_side == 'home' %}is-winner{% endif %}">
+        <img src="https://flagcdn.com/w80/{{ home_flag }}.png"
+             alt="{{ home_team }}"
+             onerror="this.style.display='none'">
+        <span class="team-name">{{ home_team }}</span>
+    </div>
+
+    <div class="vs-circle">VS</div>
+
+    <div class="team-card away {% if winner_side == 'away' %}is-winner{% endif %}">
+        <img src="https://flagcdn.com/w80/{{ away_flag }}.png"
+             alt="{{ away_team }}"
+             onerror="this.style.display='none'">
+        <span class="team-name">{{ away_team }}</span>
+    </div>
+</div>
+
+
+
+        {% if tn_result %}
+
+{% endif %}
         <div class="result-layout">
             <!-- Partie gauche : badge + barres -->
             <div class="result-left">
@@ -171,61 +194,53 @@
         {% endif %}
 
         <!-- Historique H2H -->
-        {% if h2h_summary or h2h_matches %}
-        <div class="history-section">
-            <h3>Confrontations directes (H2H)</h3>
+<!-- ================= H2H CENTER ================= -->
+{% if h2h_summary or h2h_matches %}
+<div class="h2h-center">
 
-            {% if h2h_summary %}
-            <div class="h2h-summary">
-                <div class="h2h-item">
-                    <span>Matchs joués</span>
-                    <strong>{{ h2h_summary.total }}</strong>
-                </div>
-                <div class="h2h-item">
-                    <span>Victoires {{ h2h_summary.team_a }}</span>
-                    <strong>{{ h2h_summary.wins_a }}</strong>
-                </div>
-                <div class="h2h-item">
-                    <span>Victoires {{ h2h_summary.team_b }}</span>
-                    <strong>{{ h2h_summary.wins_b }}</strong>
-                </div>
-                <div class="h2h-item">
-                    <span>Matchs nuls</span>
-                    <strong>{{ h2h_summary.draws }}</strong>
-                </div>
-                <div class="h2h-item">
-                    <span>Buts {{ h2h_summary.team_a }}</span>
-                    <strong>{{ h2h_summary.goals_a }}</strong>
-                </div>
-                <div class="h2h-item">
-                    <span>Buts {{ h2h_summary.team_b }}</span>
-                    <strong>{{ h2h_summary.goals_b }}</strong>
-                </div>
-            </div>
-            {% endif %}
+    <h3 class="section-title"> Confrontations Directes (H2H)</h3>
 
-            {% if h2h_matches %}
-            <div class="history-table">
-                <div class="history-header">
-                    <span>Date</span>
-                    <span>Match</span>
-                    <span>Score</span>
-                    <span>Résultat</span>
-                </div>
-                {% for m in h2h_matches %}
-                <div class="history-row">
-                    <span>{{ m.date }}</span>
-                    <span>{{ m.home }} vs {{ m.away }}</span>
-                    <span>{{ m.score }}</span>
-                    <span>{{ m.winner }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="history-empty">Aucune confrontation directe trouvée dans l'historique.</p>
-            {% endif %}
+    {% if h2h_summary %}
+    <div class="h2h-cards">
+        <div class="h2h-card">
+            <span>Matchs joués</span>
+            <strong>{{ h2h_summary.total }}</strong>
         </div>
-        {% endif %}
+        <div class="h2h-card win">
+            <span>Victoires {{ h2h_summary.team_a }}</span>
+            <strong>{{ h2h_summary.wins_a }}</strong>
+        </div>
+        <div class="h2h-card win">
+            <span>Victoires {{ h2h_summary.team_b }}</span>
+            <strong>{{ h2h_summary.wins_b }}</strong>
+        </div>
+        <div class="h2h-card draw">
+            <span>Matchs nuls</span>
+            <strong>{{ h2h_summary.draws }}</strong>
+        </div>
+        <div class="h2h-card">
+            <span>Buts {{ h2h_summary.team_a }}</span>
+            <strong>{{ h2h_summary.goals_a }}</strong>
+        </div>
+        <div class="h2h-card">
+            <span>Buts {{ h2h_summary.team_b }}</span>
+            <strong>{{ h2h_summary.goals_b }}</strong>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if h2h_matches %}
+    <div class="h2h-last">
+        <span class="date">{{ h2h_matches[0].date }}</span>
+        <span class="match">{{ h2h_matches[0].home }} vs {{ h2h_matches[0].away }}</span>
+        <span class="score">{{ h2h_matches[0].score }}</span>
+        <span class="winner">{{ h2h_matches[0].winner }}</span>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
 
         <!-- 5 derniers matchs de chaque équipe -->
         <div class="history-grid">
