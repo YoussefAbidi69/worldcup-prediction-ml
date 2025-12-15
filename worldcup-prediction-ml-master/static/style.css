@@ -1,0 +1,930 @@
+/* ===== RESET & BASE ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #020617 10%, #020617 40%, #000000 100%);
+    color: #e5e7eb;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.page {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;      /* en haut de la page */
+    justify-content: center;      /* centré horizontalement */
+    padding: 32px 40px;           /* marges plus larges */
+
+    /* IMPORTANT : laisse la place à la sidebar fixe */
+    margin-left: 250px;           /* même largeur que .neon-sidebar */
+}
+
+.card {
+    background: radial-gradient(circle at top left, #0f172a 0%, #020617 60%);
+    border-radius: 16px;
+    padding: 28px 40px 32px;      /* un peu plus de padding horizontal */
+    max-width: 1200px;            /* large dashboard */
+    width: 100%;
+    margin: 0 auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* ===== TITRES ===== */
+h1 {
+    text-align: left;
+    margin: 0 0 20px;
+    font-size: 32px;
+    letter-spacing: 0.04em;
+    color: #f9fafb;
+}
+
+/* ===== FORMULAIRE ===== */
+.form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 20px;
+    align-items: flex-end;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 260px;
+}
+
+label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #cbd5f5;
+}
+
+/* Inputs & selects */
+select {
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+    font-size: 14px;
+    background: #020617;
+    color: #e5e7eb;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.8);
+}
+
+/* Bouton */
+.btn {
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #f9fafb;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 35px rgba(79, 70, 229, 0.7);
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+/* ===== BLOC RÉSULTAT ===== */
+.result-box {
+    margin-top: 26px;
+    padding: 18px 20px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(15, 23, 42, 0.85);
+}
+
+.result-box h2 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #e5e7eb;
+}
+
+.result-text {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.result-text.muted {
+    font-weight: 400;
+    color: #9ca3af;
+}
+
+/* ===== BANNIÈRE HEADLINE (résultat) ===== */
+.headline-banner {
+    margin-top: 6px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1e293b, #020617);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.headline-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+/* ===== LAYOUT RÉSULTAT (barres + donut) ===== */
+.result-layout {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.2fr);
+    gap: 24px;
+    align-items: center;
+}
+
+.result-left {
+    min-width: 0;
+}
+
+.result-right {
+    display: flex;
+    justify-content: center;
+}
+
+/* ===== PROBABILITÉS ===== */
+.proba-box {
+    margin-top: 14px;
+    font-size: 14px;
+}
+
+.proba-title {
+    margin: 0 0 8px;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+/* Ligne de probabilité (label + barre + valeur) */
+.proba-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 3fr) auto;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.proba-label {
+    font-size: 13px;
+    color: #cbd5f5;
+}
+
+.proba-bar {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    overflow: hidden;
+}
+
+/* Remplissage dynamique : width = --p% */
+.proba-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: calc(var(--p) * 1%);
+    border-radius: inherit;
+    transform-origin: left center;
+    transition: width 0.6s ease-out;
+}
+
+/* Couleurs par résultat */
+.proba-bar-fill.home {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.proba-bar-fill.draw {
+    background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+}
+
+.proba-bar-fill.away {
+    background: linear-gradient(90deg, #f97373, #ef4444);
+}
+
+.proba-value {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+/* Mise en avant de la proba max */
+.proba-row.is-max .proba-label,
+.proba-row.is-max .proba-value {
+    font-weight: 700;
+    color: #f9fafb;
+}
+
+.proba-row.is-max .proba-bar {
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
+}
+
+/* Légende couleurs */
+.proba-legend {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #9ca3af;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    margin-right: 4px;
+}
+
+.legend-dot.home {
+    background: #22c55e;
+}
+
+.legend-dot.draw {
+    background: #38bdf8;
+}
+
+.legend-dot.away {
+    background: #ef4444;
+}
+
+/* Message d’erreur */
+.error {
+    color: #fca5a5;
+}
+
+/* ===== BADGE GAGNANT ===== */
+.winner-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid transparent;
+}
+
+.winner-pill::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+}
+
+/* Couleur selon le gagnant */
+.winner-pill.home {
+    border-color: rgba(34, 197, 94, 0.4);
+    background: radial-gradient(circle at left, rgba(34, 197, 94, 0.25), transparent 55%);
+}
+
+.winner-pill.home::before {
+    background: #22c55e;
+}
+
+.winner-pill.away {
+    border-color: rgba(248, 113, 113, 0.4);
+    background: radial-gradient(circle at left, rgba(248, 113, 113, 0.25), transparent 55%);
+}
+
+.winner-pill.away::before {
+    background: #ef4444;
+}
+
+.winner-pill.draw {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: radial-gradient(circle at left, rgba(56, 189, 248, 0.25), transparent 55%);
+}
+
+.winner-pill.draw::before {
+    background: #38bdf8;
+}
+
+/* ===== DONUT CHART ===== */
+.donut-wrapper {
+    position: relative;
+    width: 160px;
+    height: 160px;
+}
+
+.donut {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background:
+      conic-gradient(
+        #22c55e 0deg calc(3.6deg * var(--p-home)),
+        #38bdf8 calc(3.6deg * var(--p-home))
+                 calc(3.6deg * (var(--p-home) + var(--p-draw))),
+        #ef4444 calc(3.6deg * (var(--p-home) + var(--p-draw))) 360deg
+      );
+    position: relative;
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.7);
+}
+
+.donut::after {
+    content: "";
+    position: absolute;
+    inset: 22%;
+    background: #020617;
+    border-radius: 50%;
+}
+
+/* Texte au centre du donut */
+.donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.donut-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f9fafb;
+}
+
+.donut-label {
+    margin-top: 2px;
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+/* ===== ANALYSE ===== */
+.analysis-box {
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(148, 163, 184, 0.5);
+    background: rgba(15, 23, 42, 0.8);
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+.analysis-box h3 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5f5;
+}
+
+.analysis-box p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===== DÉTAILS DU MATCH ===== */
+.details-box {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.3);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+}
+
+.details-column h3 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e5e7eb;
+}
+
+.details-column p {
+    margin: 2px 0;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    color: #9ca3af;
+}
+
+.details-column p span {
+    opacity: 0.9;
+}
+
+.details-column p strong {
+    color: #f9fafb;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ===== SECTIONS HISTORIQUE ===== */
+.history-section {
+    margin-top: 18px;
+}
+
+.history-section h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #e5e7eb;
+}
+
+/* Tableau historique (H2H + 5 derniers matchs) */
+.history-table {
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: radial-gradient(circle at top left, #020617 0%, #020617 40%, #020617 100%);
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.history-header,
+.history-row {
+    display: grid;
+    /* + de place pour "Adversaire" */
+    grid-template-columns: 90px minmax(0, 2fr) 60px 70px;
+    gap: 8px;
+    padding: 6px 10px;
+}
+
+.history-header {
+    background: rgba(15, 23, 42, 0.95);
+    font-weight: 600;
+    color: #cbd5f5;
+}
+
+.history-header span {
+    font-weight: 600;
+}
+
+.history-row:nth-child(odd) {
+    background: rgba(15, 23, 42, 0.75);
+}
+
+.history-row:nth-child(even) {
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.history-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* aligner la dernière colonne (Résultat) à droite */
+.history-row span:last-child {
+    text-align: right;
+}
+
+.history-empty {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+/* Grille pour les 5 derniers matchs de chaque équipe */
+.history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+/* Résumé H2H */
+.h2h-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px 12px;
+    margin: 10px 0 12px;
+    font-size: 12px;
+}
+
+.h2h-item {
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.h2h-item span {
+    color: #9ca3af;
+    font-size: 11px;
+}
+
+.h2h-item strong {
+    color: #f9fafb;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =======================================
+   SIDEBAR FIFA WORLD CUP 🏆✨
+   ======================================= */
+
+.neon-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+
+    background: linear-gradient(180deg, #0b1e3f 0%, #102a56 100%); /* bleu nuit */
+    backdrop-filter: blur(10px);
+
+    border-right: 1px solid rgba(245, 214, 139, 0.35); /* or champagne */
+    box-shadow:
+        0 0 25px rgba(0, 0, 0, 0.55),
+        inset 0 0 25px rgba(245, 214, 139, 0.12);
+
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+/* Liseré doré animé */
+.neon-sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-right: 2px solid rgba(212, 175, 55, 0.65); /* doré */
+    opacity: 0.25;
+    animation: goldPulse 6s ease-in-out infinite;
+    pointer-events: none; /* IMPORTANT pour laisser les boutons clicables */
+}
+
+@keyframes goldPulse {
+    0% { opacity: 0.15; }
+    50% { opacity: 0.45; }
+    100% { opacity: 0.15; }
+}
+
+/* ---------- LOGO ---------- */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    color: #f5d68b; /* or champagne */
+}
+
+.glow-icon {
+    font-size: 24px;
+    color: #d4af37; /* doré pur */
+}
+
+/* ---------- NAVIGATION ---------- */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px 16px;
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #cdd6e0; /* argent */
+    text-decoration: none;
+
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(245, 214, 139, 0.18);
+
+    transition: all 0.25s ease-out;
+}
+
+/* Hover FIFA premium */
+.nav-item:hover {
+    color: white;
+    border-color: rgba(245, 214, 139, 0.8);
+    background: rgba(212, 175, 55, 0.25); /* doré transparent */
+    transform: translateX(6px);
+}
+
+/* Active */
+.nav-item.active {
+    background: linear-gradient(90deg, #d4af37, #f5d68b);
+    border-color: transparent;
+    color: #0b1e3f;
+    font-weight: 700;
+    box-shadow:
+        0 0 20px rgba(245, 214, 139, 0.45),
+        0 0 40px rgba(212, 175, 55, 0.35);
+}
+
+
+/* ================================
+   ACCUEIL – HERO & FEATURES
+   ================================ */
+
+.home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+/* Bloc principal (texte) */
+.hero-main {
+    padding: 24px 28px;
+    border-radius: 16px;
+    background: radial-gradient(circle at top left, #020617 0%, #020617 40%, #020617 100%);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.hero-title {
+    margin: 0 0 12px;
+    font-size: 32px;
+    letter-spacing: 0.05em;
+    color: #f9fafb;
+}
+
+.hero-subtitle {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: #e5e7eb;
+}
+
+.hero-text {
+    margin: 0 0 18px;
+    font-size: 14px;
+    color: #9ca3af;
+    max-width: 620px;
+}
+
+/* Bouton CTA */
+.cta-btn {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 22px;
+    font-size: 14px;
+}
+
+.cta-arrow {
+    font-size: 16px;
+}
+
+/* Bloc stats à droite */
+.hero-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(245, 214, 139, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #e5e7eb;
+    opacity: 0.8;
+}
+
+.stat-value {
+    display: block;
+    margin-top: 4px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #f5d68b;
+}
+
+.stat-note {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Section fonctionnalités */
+.features-grid {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.feature-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.feature-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.feature-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: #e5e7eb;
+}
+
+.feature-text {
+    margin: 0;
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.45;
+
+
+.feature-meta {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #9ca3af;
+    opacity: 0.95;
+}
+
+}
+
+/* Responsive : pile en colonne sur petits écrans */
+@media (max-width: 900px) {
+    .home-hero {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hero-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        flex: 1 1 180px;
+    }
+}
+
+
+/* ================================
+   Pourcentages résultat global
+   ================================ */
+.stat-percentages {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: rgba(15,23,42,0.65);
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-p-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #e5e7eb;
+}
+
+.stat-p-item .sp-icon {
+    font-size: 18px;
+}
+
+.stat-p-item .sp-label {
+    opacity: 0.85;
+}
+
+.stat-p-item .sp-value {
+    font-weight: 700;
+    color: #f5d68b;
+}
+
+
+/* ================================
+   Section "À propos du modèle"
+   ================================ */
+.about-model {
+    margin-top: 40px;
+    padding: 20px 24px;
+    background: rgba(15,23,42,0.88);
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.35);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    color: #d1d5db;
+    line-height: 1.55;
+}
+
+.about-model h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #f9fafb;
+}
+
+.about-model ul {
+    margin: 12px 0 12px 18px;
+}
+
+.about-model li {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+/* ================================
+   Footer - À propos du modèle
+   ================================ */
+.model-footer {
+    margin-top: 50px;
+    padding: 32px;
+    background: rgba(15,23,42,0.85);
+    border-top: 1px solid rgba(148,163,184,0.25);
+    border-radius: 14px;
+    color: #d1d5db;
+}
+
+.model-footer h2 {
+    text-align: center;
+    margin-bottom: 14px;
+    color: #f9fafb;
+    font-size: 22px;
+}
+
+.model-footer p {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto 18px;
+}
+.model-footer {
+    margin-top: 40px;
+    padding: 32px;
+    background: rgba(15,23,42,0.85);
+    border-top: 1px solid rgba(148,163,184,0.25);
+    border-radius: 14px;
+    color: #d1d5db;
+}
+
+.model-footer h2 {
+    text-align: center;
+    margin-bottom: 14px;
+    color: #f9fafb;
+    font-size: 22px;
+}
+
+.model-footer p {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto 18px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.footer-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(148,163,184,0.2);
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.footer-item .fi {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.footer-end {
+    margin-top: 28px;
+    font-size: 14px;
+    opacity: 0.9;
+}

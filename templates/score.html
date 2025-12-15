@@ -1,0 +1,554 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <h1>⚽ Prédiction de Score</h1>
+
+  {% if error %}
+    <div class="error" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4);">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" class="form">
+    <div class="field">
+      <label>🏠 Équipe Domicile</label>
+      <select name="home_team" required>
+        <option value="">-- Sélectionner une équipe --</option>
+        {% for t in teams %}
+        <option value="{{ t }}" {% if t==home_team %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>✈️ Équipe Extérieure</label>
+      <select name="away_team" required>
+        <option value="">-- Sélectionner une équipe --</option>
+        {% for t in teams %}
+        <option value="{{ t }}" {% if t==away_team %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <button class="btn score-btn" type="submit">
+        <span class="btn-icon">🎯</span>
+        <span>Prédire le Score</span>
+      </button>
+    </div>
+  </form>
+
+  {% if result %}
+    <!-- PRÉDICTION PRINCIPALE -->
+    <div class="result-box score-result" style="margin-top: 28px;">
+      <h2 style="margin: 0 0 16px; font-size: 20px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+        <span>📊</span>
+        <span>Résultat de la Prédiction</span>
+      </h2>
+      
+      {% if result.home_score is defined and result.away_score is defined %}
+        {% set home_score_display = result.home_score|string %}
+        {% set away_score_display = result.away_score|string %}
+      {% else %}
+        {% set score_str = result.score|string %}
+        {% if ' - ' in score_str %}
+          {% set score_parts = score_str.split(' - ') %}
+        {% elif '-' in score_str %}
+          {% set score_parts = score_str.split('-') %}
+        {% else %}
+          {% set score_parts = [score_str, '0'] %}
+        {% endif %}
+        {% set home_score_display = (score_parts[0]|trim|string) if score_parts|length > 0 else '0' %}
+        {% set away_score_display = (score_parts[1]|trim|string) if score_parts|length > 1 else '0' %}
+      {% endif %}
+      <div class="score-display" style="display: flex; align-items: center; justify-content: center; gap: 20px; padding: 24px; background: rgba(15, 23, 42, 0.6); border-radius: 16px; border: 2px solid rgba(148, 163, 184, 0.3); margin-bottom: 16px;">
+        <div style="text-align: center;">
+          <div style="font-size: 48px; font-weight: 700; color: #f9fafb; line-height: 1;">{{ home_score_display }}</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Domicile</div>
+        </div>
+        <div style="font-size: 32px; color: #6366f1; font-weight: 700;">-</div>
+        <div style="text-align: center;">
+          <div style="font-size: 48px; font-weight: 700; color: #f9fafb; line-height: 1;">{{ away_score_display }}</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Extérieur</div>
+        </div>
+      </div>
+
+      {% if result.resultat %}
+        {% if result.resultat == 'Home Win' %}
+          {% set badge_bg = 'rgba(34, 197, 94, 0.2)' %}
+          {% set badge_border = 'rgba(34, 197, 94, 0.4)' %}
+          {% set badge_icon = '🏆' %}
+          {% set badge_text = 'Victoire Domicile' %}
+        {% elif result.resultat == 'Away Win' %}
+          {% set badge_bg = 'rgba(239, 68, 68, 0.2)' %}
+          {% set badge_border = 'rgba(239, 68, 68, 0.4)' %}
+          {% set badge_icon = '🏆' %}
+          {% set badge_text = 'Victoire Extérieur' %}
+        {% else %}
+          {% set badge_bg = 'rgba(56, 189, 248, 0.2)' %}
+          {% set badge_border = 'rgba(56, 189, 248, 0.4)' %}
+          {% set badge_icon = '🤝' %}
+          {% set badge_text = 'Match Nul' %}
+        {% endif %}
+        <div class="resultat-badge" style="--badge-bg: {{ badge_bg }}; --badge-border: {{ badge_border }}; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: var(--badge-bg); border: 1px solid var(--badge-border); margin-bottom: 12px;">
+          <span style="font-size: 16px;">{{ badge_icon }}</span>
+          <span style="font-weight: 600; color: #f9fafb;">{{ badge_text }}</span>
+        </div>
+      {% endif %}
+
+      {% if result.note %}
+        <p class="result-text muted" style="margin-top: 12px; font-size: 13px; color: #9ca3af; line-height: 1.5;">
+          💡 {{ result.note }}
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- STATISTIQUES COMPARATIVES DES ÉQUIPES -->
+    {% if stats_data %}
+    <div class="stats-grid" style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+      
+      <!-- Équipe Domicile -->
+      <div class="team-stat-card" style="background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+        <h3 style="margin: 0 0 16px; font-size: 18px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+          <span>🏠</span>
+          <span>{{ stats_data.home.name }}</span>
+        </h3>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">ELO Rating</span>
+          <span style="color: #f5d68b; font-weight: 700; font-size: 16px;">{{ stats_data.home.elo }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Forme Récente</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 80px; height: 6px; background: rgba(15, 23, 42, 0.9); border-radius: 999px; overflow: hidden;">
+              <div style="--form-width: {{ stats_data.home.form }}; width: calc(var(--form-width) * 1%); height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width 0.6s;"></div>
+            </div>
+            <span style="color: #f9fafb; font-weight: 600; font-size: 14px;">{{ stats_data.home.form }}%</span>
+          </div>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Buts Moyens (5 derniers)</span>
+          {% set home_goals_avg = stats_data.home.stats.avg_goals_for|float %}
+          <span style="color: #22c55e; font-weight: 600; font-size: 15px;">{{ "%.1f"|format(home_goals_avg) }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Buts Encaissés Moy.</span>
+          {% set home_goals_against_avg = stats_data.home.stats.avg_goals_against|float %}
+          <span style="color: #ef4444; font-weight: 600; font-size: 15px;">{{ "%.1f"|format(home_goals_against_avg) }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Taux de Victoire</span>
+          {% set home_win_rate = stats_data.home.stats.win_rate|float %}
+          <span style="color: #f9fafb; font-weight: 700; font-size: 15px;">{{ "%.0f"|format(home_win_rate) }}%</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <span style="color: #cbd5f5; font-size: 13px;">Résultats (5 derniers)</span>
+          <div style="display: flex; gap: 4px;">
+            {% set wins_count = stats_data.home.stats.wins|int %}
+            {% set draws_count = stats_data.home.stats.draws|int %}
+            {% set losses_count = stats_data.home.stats.losses|int %}
+            {% if wins_count >= 1 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 2 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 3 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 4 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 5 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if draws_count >= 1 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 2 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 3 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 4 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 5 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if losses_count >= 1 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 2 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 3 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 4 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 5 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Équipe Extérieure -->
+      <div class="team-stat-card" style="background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+        <h3 style="margin: 0 0 16px; font-size: 18px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+          <span>✈️</span>
+          <span>{{ stats_data.away.name }}</span>
+        </h3>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">ELO Rating</span>
+          <span style="color: #f5d68b; font-weight: 700; font-size: 16px;">{{ stats_data.away.elo }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Forme Récente</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 80px; height: 6px; background: rgba(15, 23, 42, 0.9); border-radius: 999px; overflow: hidden;">
+              <div style="--form-width: {{ stats_data.away.form }}; width: calc(var(--form-width) * 1%); height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width 0.6s;"></div>
+            </div>
+            <span style="color: #f9fafb; font-weight: 600; font-size: 14px;">{{ stats_data.away.form }}%</span>
+          </div>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Buts Moyens (5 derniers)</span>
+          {% set away_goals_avg = stats_data.away.stats.avg_goals_for|float %}
+          <span style="color: #22c55e; font-weight: 600; font-size: 15px;">{{ "%.1f"|format(away_goals_avg) }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Buts Encaissés Moy.</span>
+          {% set away_goals_against_avg = stats_data.away.stats.avg_goals_against|float %}
+          <span style="color: #ef4444; font-weight: 600; font-size: 15px;">{{ "%.1f"|format(away_goals_against_avg) }}</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+          <span style="color: #cbd5f5; font-size: 13px;">Taux de Victoire</span>
+          {% set away_win_rate = stats_data.away.stats.win_rate|float %}
+          <span style="color: #f9fafb; font-weight: 700; font-size: 15px;">{{ "%.0f"|format(away_win_rate) }}%</span>
+        </div>
+        
+        <div class="stat-row" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <span style="color: #cbd5f5; font-size: 13px;">Résultats (5 derniers)</span>
+          <div style="display: flex; gap: 4px;">
+            {% set wins_count = stats_data.away.stats.wins|int %}
+            {% set draws_count = stats_data.away.stats.draws|int %}
+            {% set losses_count = stats_data.away.stats.losses|int %}
+            {% if wins_count >= 1 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 2 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 3 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 4 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if wins_count >= 5 %}<span style="color: #22c55e; font-size: 18px;">✓</span>{% endif %}
+            {% if draws_count >= 1 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 2 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 3 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 4 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if draws_count >= 5 %}<span style="color: #38bdf8; font-size: 18px;">-</span>{% endif %}
+            {% if losses_count >= 1 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 2 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 3 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 4 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+            {% if losses_count >= 5 %}<span style="color: #ef4444; font-size: 18px;">✗</span>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SCORES PROBABLES -->
+    {% if stats_data.score_probabilities %}
+    <div class="score-probabilities" style="margin-top: 24px; background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+      <h3 style="margin: 0 0 16px; font-size: 18px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+        <span>🎲</span>
+        <span>Scores Probables</span>
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+        {% for score_prob in stats_data.score_probabilities %}
+        <div style="background: rgba(2, 6, 23, 0.6); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(148, 163, 184, 0.2);">
+          <div style="font-size: 18px; font-weight: 700; color: #f9fafb; margin-bottom: 4px;">{{ score_prob.score }}</div>
+          <div style="font-size: 12px; color: #9ca3af;">{{ score_prob.probability }}%</div>
+          <div style="width: 100%; height: 4px; background: rgba(15, 23, 42, 0.9); border-radius: 999px; margin-top: 6px; overflow: hidden;">
+            <div style="--prob-width: {{ score_prob.probability }}; width: calc(var(--prob-width) * 1%); height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.8s;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- HISTORIQUE DES CONFRONTATIONS DIRECTES (H2H) -->
+    {% if h2h_data and h2h_data.summary %}
+    <div class="h2h-section" style="margin-top: 24px; background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+      <h3 style="margin: 0 0 16px; font-size: 18px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+        <span>⚔️</span>
+        <span>Confrontations Directes (Head-to-Head)</span>
+      </h3>
+      
+      <div class="h2h-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: rgba(2, 6, 23, 0.6); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.3);">
+          <div style="font-size: 24px; font-weight: 700; color: #22c55e; margin-bottom: 4px;">{{ h2h_data.summary.wins_a }}</div>
+          <div style="font-size: 12px; color: #9ca3af;">Victoires {{ stats_data.home.name }}</div>
+        </div>
+        <div style="background: rgba(2, 6, 23, 0.6); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.3);">
+          <div style="font-size: 24px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">{{ h2h_data.summary.draws }}</div>
+          <div style="font-size: 12px; color: #9ca3af;">Matchs Nuls</div>
+        </div>
+        <div style="background: rgba(2, 6, 23, 0.6); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3);">
+          <div style="font-size: 24px; font-weight: 700; color: #ef4444; margin-bottom: 4px;">{{ h2h_data.summary.wins_b }}</div>
+          <div style="font-size: 12px; color: #9ca3af;">Victoires {{ stats_data.away.name }}</div>
+        </div>
+        <div style="background: rgba(2, 6, 23, 0.6); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid rgba(148, 163, 184, 0.3);">
+          <div style="font-size: 24px; font-weight: 700; color: #f5d68b; margin-bottom: 4px;">{{ h2h_data.summary.total }}</div>
+          <div style="font-size: 12px; color: #9ca3af;">Total Matchs</div>
+        </div>
+      </div>
+
+      {% if h2h_data.matches %}
+      <div style="margin-top: 16px;">
+        <h4 style="margin: 0 0 12px; font-size: 14px; color: #cbd5f5; font-weight: 600;">Derniers Matchs</h4>
+        <div class="history-table">
+          <div class="history-header" style="display: grid; grid-template-columns: 90px 2fr 1fr 1fr 80px; gap: 8px; padding: 8px 12px; background: rgba(2, 6, 23, 0.8); border-radius: 8px; margin-bottom: 8px;">
+            <span style="font-size: 12px; color: #cbd5f5;">Date</span>
+            <span style="font-size: 12px; color: #cbd5f5;">Match</span>
+            <span style="font-size: 12px; color: #cbd5f5; text-align: center;">Score</span>
+            <span style="font-size: 12px; color: #cbd5f5; text-align: center;">Vainqueur</span>
+          </div>
+          {% for match in h2h_data.matches %}
+            {% if loop.index <= 5 %}
+          <div class="history-row" style="display: grid; grid-template-columns: 90px 2fr 1fr 1fr 80px; gap: 8px; padding: 8px 12px; background: rgba(2, 6, 23, 0.4); border-radius: 6px; margin-bottom: 4px;">
+            <span style="font-size: 11px; color: #9ca3af;">{{ match.date }}</span>
+            <span style="font-size: 12px; color: #e5e7eb;">{{ match.home }} vs {{ match.away }}</span>
+            <span style="font-size: 13px; color: #f9fafb; font-weight: 600; text-align: center;">{{ match.score }}</span>
+            {% if match.winner == match.home %}
+              {% set winner_color = '#22c55e' %}
+            {% elif match.winner == match.away %}
+              {% set winner_color = '#ef4444' %}
+            {% else %}
+              {% set winner_color = '#38bdf8' %}
+            {% endif %}
+            <span style="--winner-color: {{ winner_color }}; font-size: 12px; text-align: center; color: var(--winner-color);">{{ match.winner }}</span>
+          </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- DERNIERS MATCHS DES ÉQUIPES -->
+    {% if team_comparison %}
+    <div class="recent-matches" style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+      
+      <!-- Derniers matchs équipe domicile -->
+      {% if team_comparison.home_last_matches %}
+      <div style="background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+        <h3 style="margin: 0 0 16px; font-size: 16px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+          <span>📅</span>
+          <span>5 Derniers Matchs - {{ stats_data.home.name }}</span>
+        </h3>
+        {% for match in team_comparison.home_last_matches %}
+        <div style="padding: 10px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 12px; color: #9ca3af;">{{ match.date }}</div>
+            <div style="font-size: 13px; color: #e5e7eb; margin-top: 2px;">vs {{ match.opponent }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; font-weight: 600; color: #f9fafb;">{{ match.score }}</div>
+            {% if match.result == 'Victoire' %}
+              {% set result_color = '#22c55e' %}
+            {% elif match.result == 'Défaite' %}
+              {% set result_color = '#ef4444' %}
+            {% else %}
+              {% set result_color = '#38bdf8' %}
+            {% endif %}
+            <div style="--result-color: {{ result_color }}; font-size: 11px; color: var(--result-color); margin-top: 2px;">{{ match.result }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Derniers matchs équipe extérieure -->
+      {% if team_comparison.away_last_matches %}
+      <div style="background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+        <h3 style="margin: 0 0 16px; font-size: 16px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+          <span>📅</span>
+          <span>5 Derniers Matchs - {{ stats_data.away.name }}</span>
+        </h3>
+        {% for match in team_comparison.away_last_matches %}
+        <div style="padding: 10px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.2); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 12px; color: #9ca3af;">{{ match.date }}</div>
+            <div style="font-size: 13px; color: #e5e7eb; margin-top: 2px;">vs {{ match.opponent }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 14px; font-weight: 600; color: #f9fafb;">{{ match.score }}</div>
+            {% if match.result == 'Victoire' %}
+              {% set result_color = '#22c55e' %}
+            {% elif match.result == 'Défaite' %}
+              {% set result_color = '#ef4444' %}
+            {% else %}
+              {% set result_color = '#38bdf8' %}
+            {% endif %}
+            <div style="--result-color: {{ result_color }}; font-size: 11px; color: var(--result-color); margin-top: 2px;">{{ match.result }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- COMPARAISON VISUELLE DES FORCES -->
+    {% if stats_data %}
+    <div class="comparison-chart" style="margin-top: 24px; background: rgba(15, 23, 42, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(148, 163, 184, 0.3);">
+      <h3 style="margin: 0 0 20px; font-size: 18px; color: #f9fafb; display: flex; align-items: center; gap: 8px;">
+        <span>📈</span>
+        <span>Comparaison des Forces</span>
+      </h3>
+      
+      <!-- ELO Comparison -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; color: #cbd5f5;">ELO Rating</span>
+          {% set elo_diff = stats_data.home.elo - stats_data.away.elo %}
+          {% if elo_diff < 0 %}{% set elo_diff = -elo_diff %}{% endif %}
+          <span style="font-size: 12px; color: #9ca3af;">Différence: {{ elo_diff|int }}</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="flex: 1; text-align: right; font-size: 12px; color: #e5e7eb;">{{ stats_data.home.elo }}</div>
+          {% set elo_home = stats_data.home.elo|float %}
+          {% set elo_away = stats_data.away.elo|float %}
+          {% if elo_home > elo_away %}{% set max_elo = elo_home %}{% else %}{% set max_elo = elo_away %}{% endif %}
+          {% set max_elo_base = max_elo + 200 %}
+          {% set home_pct_calc = (elo_home / max_elo_base) * 100 %}
+          {% set away_pct_calc = (elo_away / max_elo_base) * 100 %}
+          {% set home_pct = home_pct_calc|round(1) %}
+          {% set away_pct = away_pct_calc|round(1) %}
+          <div style="flex: 2; height: 20px; background: rgba(2, 6, 23, 0.6); border-radius: 10px; position: relative; overflow: hidden;">
+            <div style="--home-pct: {{ home_pct }}; position: absolute; left: 0; width: calc(var(--home-pct) * 1%); height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 10px 0 0 10px;"></div>
+            <div style="--away-pct: {{ away_pct }}; position: absolute; right: 0; width: calc(var(--away-pct) * 1%); height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); border-radius: 0 10px 10px 0;"></div>
+          </div>
+          <div style="flex: 1; text-align: left; font-size: 12px; color: #e5e7eb;">{{ stats_data.away.elo }}</div>
+        </div>
+      </div>
+
+      <!-- Form Comparison -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; color: #cbd5f5;">Forme Récente</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="flex: 1; text-align: right; font-size: 12px; color: #e5e7eb;">{{ stats_data.home.form }}%</div>
+          {% set home_form_val = stats_data.home.form %}
+          {% set away_form_val = stats_data.away.form %}
+          <div style="flex: 2; height: 20px; background: rgba(2, 6, 23, 0.6); border-radius: 10px; position: relative; overflow: hidden;">
+            <div style="--home-form-val: {{ home_form_val }}; position: absolute; left: 0; width: calc(var(--home-form-val) * 1%); height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 10px 0 0 10px;"></div>
+            <div style="--away-form-val: {{ away_form_val }}; position: absolute; right: 0; width: calc(var(--away-form-val) * 1%); height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); border-radius: 0 10px 10px 0;"></div>
+          </div>
+          <div style="flex: 1; text-align: left; font-size: 12px; color: #e5e7eb;">{{ stats_data.away.form }}%</div>
+        </div>
+      </div>
+
+      <!-- Goals Comparison -->
+      <div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 13px; color: #cbd5f5;">Buts Moyens (Attaque)</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          {% set goals_home_display = stats_data.home.stats.avg_goals_for|float %}
+          <div style="flex: 1; text-align: right; font-size: 12px; color: #e5e7eb;">{{ "%.1f"|format(goals_home_display) }}</div>
+          {% set goals_home = stats_data.home.stats.avg_goals_for|float %}
+          {% set goals_away = stats_data.away.stats.avg_goals_for|float %}
+          {% if goals_home > goals_away %}{% set max_goals = goals_home %}{% else %}{% set max_goals = goals_away %}{% endif %}
+          {% set max_goals_base = max_goals + 1 %}
+          {% set home_goal_pct_calc = (goals_home / max_goals_base) * 100 %}
+          {% set away_goal_pct_calc = (goals_away / max_goals_base) * 100 %}
+          {% set home_goal_pct = home_goal_pct_calc|round(1) %}
+          {% set away_goal_pct = away_goal_pct_calc|round(1) %}
+          <div style="flex: 2; height: 20px; background: rgba(2, 6, 23, 0.6); border-radius: 10px; position: relative; overflow: hidden;">
+            <div style="--home-goal-pct: {{ home_goal_pct }}; position: absolute; left: 0; width: calc(var(--home-goal-pct) * 1%); height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 10px 0 0 10px;"></div>
+            <div style="--away-goal-pct: {{ away_goal_pct }}; position: absolute; right: 0; width: calc(var(--away-goal-pct) * 1%); height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); border-radius: 0 10px 10px 0;"></div>
+          </div>
+          {% set goals_away_display = stats_data.away.stats.avg_goals_for|float %}
+          <div style="flex: 1; text-align: left; font-size: 12px; color: #e5e7eb;">{{ "%.1f"|format(goals_away_display) }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  {% endif %}
+</div>
+
+<style>
+.score-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.score-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.score-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.score-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+}
+
+.score-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.btn-icon {
+  font-size: 20px;
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.score-result {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.stats-grid > div,
+.score-probabilities,
+.h2h-section,
+.recent-matches > div,
+.comparison-chart {
+  animation: fadeIn 0.6s ease-in;
+  animation-delay: 0.1s;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+{% endblock %}

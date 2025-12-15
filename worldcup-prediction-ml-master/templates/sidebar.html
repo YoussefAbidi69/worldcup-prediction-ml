@@ -21,12 +21,12 @@
             Prédictions
         </a>
 
-       <a href="{{ url_for('score') }}"
-   class="nav-item {% if current_page == 'score' %}active{% endif %}">
-    <span class="icon">🏆</span>
-    Score
-</a>
-
+        <!-- Statistiques (même si la page est vide pour l'instant) -->
+        <a href="{{ url_for('stats') }}"
+           class="nav-item {% if current_page == 'stats' %}active{% endif %}">
+            <span class="icon">📊</span>
+            Statistiques
+        </a>
 
         <!-- À propos -->
         <a href="{{ url_for('about') }}"

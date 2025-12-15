@@ -23,18 +23,10 @@
             et les derniers matchs pour affiner votre analyse.
         </p>
 
-        <div style="display:flex; flex-direction:column; gap:12px; align-items:flex-start;">
-            <a href="{{ url_for('predictions') }}" class="btn cta-btn">
-                <span>Commencer une prédiction</span>
-                <span class="cta-arrow">➜</span>
-            </a>
-
-            <a href="{{ url_for('score') }}" class="btn cta-btn">
-                <span>Commencer un score</span>
-                <span class="cta-arrow">➜</span>
-            </a>
-        </div>
-
+        <a href="{{ url_for('predictions') }}" class="btn cta-btn">
+            <span>Commencer une prédiction</span>
+            <span class="cta-arrow">➜</span>
+        </a>
     </div>
 
     <!-- Bloc stats à droite -->

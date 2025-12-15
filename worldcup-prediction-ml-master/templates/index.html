@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Prédiction Coupe du Monde</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'sidebar.html' %}
+
+    <div class="page">
+        <div class="card">
+            <h1>Prédiction Coupe du Monde</h1>
+
+            <!-- FORMULAIRE -->
+            <form method="POST" class="form">
+                <div class="field">
+                    <label for="home_team">Équipe à domicile :</label>
+                    <select id="home_team" name="home_team" required>
+                        <option value="">-- Choisir une équipe --</option>
+                        {% for team in teams %}
+                            <option value="{{ team }}"
+                                    {% if home_team == team %}selected{% endif %}>
+                                {{ team }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="away_team">Équipe à l'extérieur :</label>
+                    <select id="away_team" name="away_team" required>
+                        <option value="">-- Choisir une équipe --</option>
+                        {% for team in teams %}
+                            <option value="{{ team }}"
+                                    {% if away_team == team %}selected{% endif %}>
+                                {{ team }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Prédire</button>
+            </form>
+
+            <!-- RÉSULTAT -->
+            <div class="result-box">
+                <h2>Résultat</h2>
+
+                {% if error %}
+                    <p class="result-text error">{{ error }}</p>
+
+                {% elif prediction_text %}
+
+                    <!-- Bandeau texte du résultat -->
+                    <div class="headline-banner">
+                        <span class="headline-text">{{ prediction_text }}</span>
+                    </div>
+
+                    <div class="result-layout">
+                        <!-- Partie gauche : badge + barres -->
+                        <div class="result-left">
+                            {% if winner_side %}
+                                <div class="winner-pill {{ winner_side }}">
+                                    {% if winner_side == "home" %}
+                                        Avantage {{ home_team }}
+                                    {% elif winner_side == "away" %}
+                                        Avantage {{ away_team }}
+                                    {% else %}
+                                        Scénario le plus probable : match nul
+                                    {% endif %}
+                                    {% if confidence is not none %}
+                                        · {{ confidence_label }} ({{ confidence }} %)
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            {% if proba_home is not none %}
+                                <div class="proba-box">
+                                    <p class="proba-title">Probabilités :</p>
+
+                                    <!-- Victoire domicile -->
+                                    <div class="proba-row {% if winner_side == 'home' %}is-max{% endif %}">
+                                        <span class="proba-label">
+                                            Victoire {{ home_team }}
+                                        </span>
+                                        <div class="proba-bar">
+                                            <div class="proba-bar-fill home"
+                                                 style="--p: {{ proba_home|default(0) }}"></div>
+                                        </div>
+                                        <span class="proba-value">
+                                            {{ proba_home }} %
+                                        </span>
+                                    </div>
+
+                                    <!-- Match nul -->
+                                    <div class="proba-row {% if winner_side == 'draw' %}is-max{% endif %}">
+                                        <span class="proba-label">
+                                            Match nul
+                                        </span>
+                                        <div class="proba-bar">
+                                            <div class="proba-bar-fill draw"
+                                                 style="--p: {{ proba_draw|default(0) }}"></div>
+                                        </div>
+                                        <span class="proba-value">
+                                            {{ proba_draw }} %
+                                        </span>
+                                    </div>
+
+                                    <!-- Victoire extérieur -->
+                                    <div class="proba-row {% if winner_side == 'away' %}is-max{% endif %}">
+                                        <span class="proba-label">
+                                            Victoire {{ away_team }}
+                                        </span>
+                                        <div class="proba-bar">
+                                            <div class="proba-bar-fill away"
+                                                 style="--p: {{ proba_away|default(0) }}"></div>
+                                        </div>
+                                        <span class="proba-value">
+                                            {{ proba_away }} %
+                                        </span>
+                                    </div>
+
+                                    <div class="proba-legend">
+                                        <span class="legend-dot home"></span> {{ home_team }}
+                                        <span class="legend-dot draw"></span> Match nul
+                                        <span class="legend-dot away"></span> {{ away_team }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Partie droite : donut chart -->
+                        {% if proba_home is not none %}
+                        <div class="result-right">
+                            <div class="donut-wrapper"
+                                 style="
+                                    --p-home: {{ proba_home|default(0) }};
+                                    --p-draw: {{ proba_draw|default(0) }};
+                                    --p-away: {{ proba_away|default(0) }};
+                                 ">
+                                <div class="donut"></div>
+                                <div class="donut-center">
+                                    {% if confidence is not none %}
+                                        <span class="donut-value">{{ confidence }}%</span>
+                                        <span class="donut-label">{{ confidence_label }}</span>
+                                    {% else %}
+                                        <span class="donut-value">–</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Analyse textuelle -->
+                    {% if analysis_text %}
+                    <div class="analysis-box">
+                        <h3>Analyse du modèle</h3>
+                        <p>{{ analysis_text }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Détails ELO + forme -->
+                    {% if home_elo is not none %}
+                    <div class="details-box">
+                        <div class="details-column">
+                            <h3>{{ home_team }}</h3>
+                            <p><span>ELO</span><strong>{{ home_elo }}</strong></p>
+                            <p><span>Forme récente</span><strong>{{ home_form }} %</strong></p>
+                        </div>
+                        <div class="details-column">
+                            <h3>{{ away_team }}</h3>
+                            <p><span>ELO</span><strong>{{ away_elo }}</strong></p>
+                            <p><span>Forme récente</span><strong>{{ away_form }} %</strong></p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Historique H2H -->
+                    {% if h2h_summary or h2h_matches %}
+                    <div class="history-section">
+                        <h3>Confrontations directes (H2H)</h3>
+
+                        {% if h2h_summary %}
+                        <div class="h2h-summary">
+                            <div class="h2h-item">
+                                <span>Matchs joués</span>
+                                <strong>{{ h2h_summary.total }}</strong>
+                            </div>
+                            <div class="h2h-item">
+                                <span>Victoires {{ h2h_summary.team_a }}</span>
+                                <strong>{{ h2h_summary.wins_a }}</strong>
+                            </div>
+                            <div class="h2h-item">
+                                <span>Victoires {{ h2h_summary.team_b }}</span>
+                                <strong>{{ h2h_summary.wins_b }}</strong>
+                            </div>
+                            <div class="h2h-item">
+                                <span>Matchs nuls</span>
+                                <strong>{{ h2h_summary.draws }}</strong>
+                            </div>
+                            <div class="h2h-item">
+                                <span>Buts {{ h2h_summary.team_a }}</span>
+                                <strong>{{ h2h_summary.goals_a }}</strong>
+                            </div>
+                            <div class="h2h-item">
+                                <span>Buts {{ h2h_summary.team_b }}</span>
+                                <strong>{{ h2h_summary.goals_b }}</strong>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if h2h_matches %}
+                        <div class="history-table">
+                            <div class="history-header">
+                                <span>Date</span>
+                                <span>Match</span>
+                                <span>Score</span>
+                                <span>Résultat</span>
+                            </div>
+                            {% for m in h2h_matches %}
+                            <div class="history-row">
+                                <span>{{ m.date }}</span>
+                                <span>{{ m.home }} vs {{ m.away }}</span>
+                                <span>{{ m.score }}</span>
+                                <span>{{ m.winner }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="history-empty">Aucune confrontation directe trouvée dans l'historique.</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- 5 derniers matchs de chaque équipe -->
+                    <div class="history-grid">
+                        {% if last_home_matches %}
+                        <div class="history-section">
+                            <h3>5 derniers matchs de {{ home_team }}</h3>
+                            <div class="history-table">
+                                <div class="history-header">
+                                    <span>Date</span>
+                                    <span>Adversaire</span>
+                                    <span>Score</span>
+                                    <span>Résultat</span>
+                                </div>
+                                {% for m in last_home_matches %}
+                                <div class="history-row">
+                                    <span>{{ m.date }}</span>
+                                    <span>{{ m.opponent }}</span>
+                                    <span>{{ m.score }}</span>
+                                    <span>{{ m.result }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if last_away_matches %}
+                        <div class="history-section">
+                            <h3>5 derniers matchs de {{ away_team }}</h3>
+                            <div class="history-table">
+                                <div class="history-header">
+                                    <span>Date</span>
+                                    <span>Adversaire</span>
+                                    <span>Score</span>
+                                    <span>Résultat</span>
+                                </div>
+                                {% for m in last_away_matches %}
+                                <div class="history-row">
+                                    <span>{{ m.date }}</span>
+                                    <span>{{ m.opponent }}</span>
+                                    <span>{{ m.score }}</span>
+                                    <span>{{ m.result }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    <p class="result-text muted">
+                        Choisissez deux équipes puis cliquez sur <strong>Prédire</strong>.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
